@@ -30,11 +30,13 @@ namespace HedgehogClient {
         public HedgehogClientWindow(IPAddress address) {
             InitializeComponent();
             _address = address;
+            ipLabel.Content = _address + ":" + _port;
 
             Connect();
         }
 
         private async void Connect() {
+            Log("Connecting to Hedgehog...");
             Cursor = Cursors.AppStarting;
             statusLabel.Content = "Connecting...";
             statusLabel.Foreground = Brushes.Orange;
@@ -48,15 +50,19 @@ namespace HedgehogClient {
                 await _client.ConnectAsync(_address, _port);
 
                 if(_client.Connected) {
+                    Log("Connected!");
                     _status = SocketStatus.Connected;
                     statusLabel.Content = "Connected";
                     statusLabel.Foreground = Brushes.Green;
                 } else {
+                    Log("Error Connecting!");
                     _status = SocketStatus.Disconnected;
                     statusLabel.Content = "Disconnected";
                     statusLabel.Foreground = Brushes.Red;
                 }
             } catch(Exception e) {
+                Log("Error Connecting!");
+                Log(e.Message);
                 _status = SocketStatus.Disconnected;
                 statusLabel.Content = "Disconnected";
                 statusLabel.Foreground = Brushes.Red;
@@ -69,9 +75,10 @@ namespace HedgehogClient {
 
 
 
-
+        //Log to Console
         private void Log(string message) {
-            logBox.Text += $"({DateTime.Now}) >" + message + Environment.NewLine;
+            logBox.Text += $"({DateTime.Now:HH:mm:ss}) > " + message + Environment.NewLine;
+            logBox.ScrollToLine(logBox.LineCount - 2);
         }
 
         //KeyDown Locks a Key (e.g. W) and drives forward till KeyUp)

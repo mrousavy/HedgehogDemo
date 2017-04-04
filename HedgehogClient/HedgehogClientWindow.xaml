@@ -3,17 +3,28 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HedgehogClient"
         mc:Ignorable="d"
         Title="Hedgehog Controller" Height="400" Width="400" KeyDown="WindowKeyDown" KeyUp="WindowKeyUp">
     <Grid Margin="10">
         <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>Status:</Label>
-                <Label Name="statusLabel" Foreground="Red">Disconnected</Label>
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0">Status:</Label>
+                <Label Grid.Row="0" Grid.Column="1" Name="statusLabel" Foreground="Red">Disconnected</Label>
+
+                <Label Grid.Row="1" Grid.Column="0">IP:</Label>
+                <Label Grid.Row="1" Grid.Column="1" Name="ipLabel">localhost</Label>
+            </Grid>
         </StackPanel>
         
-        <TextBox Focusable="False" IsReadOnly="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="50" Name="logBox"></TextBox>
+        <TextBox Focusable="False" IsReadOnly="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="50" Name="logBox" TextWrapping="Wrap"/>
     </Grid>
 </Window>
