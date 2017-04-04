@@ -15,10 +15,12 @@ namespace HedgehogClient {
     /// <summary>
     /// Interaction logic for HedgehogClientWindow.xaml
     /// </summary>
-    public partial class HedgehogClientWindow : Window {
-        private readonly IPAddress _address;
+    public partial class HedgehogClientWindow {
+        private int _currentSpeed = 5;
+        public readonly IPAddress Address;
         private TcpClient _client;
         private SocketStatus _status;
+        private ControlKeys.MovementKey _currentKey = ControlKeys.MovementKey.Stop;
 
         private SocketStatus Status {
             get { return _status; }
@@ -27,7 +29,6 @@ namespace HedgehogClient {
                 _status = value;
             }
         }
-        private ControlKeys.MovementKey _currentKey = ControlKeys.MovementKey.Stop;
 
         private static TaskCompletionSource<bool> _tcs;
 
@@ -52,8 +53,8 @@ namespace HedgehogClient {
         //Constructor
         public HedgehogClientWindow(IPAddress address) {
             InitializeComponent();
-            _address = address;
-            ipLabel.Content = _address + ":" + Port;
+            Address = address;
+            ipLabel.Content = Address + ":" + Port;
 
             Connect();
         }
@@ -135,7 +136,7 @@ namespace HedgehogClient {
             try {
                 Status = SocketStatus.Connecting;
 
-                await _client.ConnectAsync(_address, Port);
+                await _client.ConnectAsync(Address, Port);
 
                 if(_client.Connected) {
                     byte[] buffer = new byte[1];
@@ -209,15 +210,13 @@ namespace HedgehogClient {
             try {
                 switch(key) {
                     case ControlKeys.MovementKey.Minus: {
-                            int currentSpeed = int.Parse((string)speedLabel.Content);
-                            if(currentSpeed > 0)
-                                speedLabel.Content = currentSpeed - 1;
+                            if(_currentSpeed > 0)
+                                speedLabel.Content = (--_currentSpeed).ToString();
                         }
                         break;
                     case ControlKeys.MovementKey.Plus: {
-                            int currentSpeed = int.Parse((string)speedLabel.Content);
-                            if(currentSpeed < 10)
-                                speedLabel.Content = currentSpeed + 1;
+                            if(_currentSpeed < 10)
+                                speedLabel.Content = (--_currentSpeed).ToString();
                         }
                         break;
                 }
@@ -234,7 +233,9 @@ namespace HedgehogClient {
             try {
                 _client.Client.EndReceive(result);
                 Disconnected(false, "Server shut down connection!");
-            } catch { }
+            } catch {
+                // ignored
+            }
         }
 
         //Disconnect the Client
