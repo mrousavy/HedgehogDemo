@@ -1,11 +1,17 @@
-# HedgehogDemoController
+# HedgehogDemo
 TGM 2017: A SYT (Koppensteiner) Project: Server/Host and Controller/Client for a PRIA Hedgehog
 
-This Project is showcasing using the Web IDE of PRIA Hedgehogs
+This Project's goal is to showcase available functions of the [PRIA](https://github.com/PRIArobotics) [Hedgehog API](https://github.com/mrousavy/HedgehogDemo/tree/master/HedgehogPyAPI) and make use of the Web IDE.
 
 [Download Client](https://github.com/mrousavy/HedgehogDemoController/raw/master/Download/HedgehogClient.zip)
 
 [Download Server](https://github.com/mrousavy/HedgehogDemoController/raw/master/HedgehogServer/server.py)
+
+# Contents
+`HedgehogClient/`: The Hedgehog Controller Windows Application (C#)
+`HedgehogServer/`: The Hedgehog Server running on the Hedgehog (Python)
+`HedgehogPyAPI`: The API for all Hedgehog Functions (Python)
+`HedgehogPyAPI_tests`: Tests/Demos for Hedgehog API (Python)
 
 # Usage
 1. Setup `Hedgehog` with Python Project (`HedgehogServer`)
@@ -23,6 +29,7 @@ This Project is showcasing using the Web IDE of PRIA Hedgehogs
 * `-`: Speed Down
 * `Space`: Brake
 * `[No Key]`: Hedgehog Stops
+* **Also Supporting Xbox Controllers**
 
 # Screenshots
 ![Screenshot 1](http://i.imgur.com/k3OHZlr.png)
