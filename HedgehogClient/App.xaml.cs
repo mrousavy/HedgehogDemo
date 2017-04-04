@@ -18,6 +18,14 @@ namespace HedgehogClient {
                 if(ControlKeys.XboxControllerThread != null)
                     ControlKeys.XboxControllerThread.Abort();
             };
+
+            DispatcherUnhandledException += (sender, args) => {
+                MessageBox.Show(
+                    "An unrecoverable Error occured, HedgehogClient has to shutdown!\n\r" + args.Exception.Message,
+                    "Hedgehog Client Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            };
         }
     }
 }
