@@ -132,6 +132,7 @@ namespace HedgehogClient {
             }));
         }
 
+        //Change Hedgehog Speed Indicator
         private void UpdateSpeed(bool increase) {
             Dispatcher.BeginInvoke(new Action(delegate {
                 try {
@@ -223,10 +224,10 @@ namespace HedgehogClient {
             ControlKeys.MovementKey key = (ControlKeys.MovementKey)result.AsyncState;
 
             if(result.IsCompleted) {
-                Log($"Key [{key}] sent!", LogType.Debug);
+                Log($"Key [{key} ({(byte)key})] sent!", LogType.Debug);
                 _tcs?.TrySetResult(true);
             } else {
-                Log($"Error sending [{key}] Key...", LogType.Error);
+                Log($"Error sending [{key} ({(byte)key})] Key...", LogType.Error);
                 Disconnected(false, "Tried to send Message to Hedgehog, failed");
                 _tcs?.TrySetResult(false);
             }
