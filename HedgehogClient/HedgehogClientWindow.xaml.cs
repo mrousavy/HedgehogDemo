@@ -43,6 +43,12 @@ namespace HedgehogClient {
             Busy
         }
 
+        private enum LogType {
+            Debug,
+            Info,
+            Error
+        }
+
         //Constructor
         public HedgehogClientWindow(IPAddress address) {
             InitializeComponent();
@@ -56,24 +62,28 @@ namespace HedgehogClient {
         private void SetHedgehogIcon(bool green) {
             try {
                 if(green) {
-                    using(Bitmap bitmap = Properties.Resources.Hedgehog_Green.ToBitmap()) {
-                        IntPtr hBitmap = bitmap.GetHbitmap();
-                        ImageSource source =
-                            Imaging.CreateBitmapSourceFromHBitmap(
-                                hBitmap, IntPtr.Zero, Int32Rect.Empty,
-                                BitmapSizeOptions.FromEmptyOptions());
-                        statusImage.Source = source;
-                        Icon = source;
+                    using(Icon icon = Properties.Resources.Hedgehog_Green) {
+                        using(Bitmap bitmap = icon.ToBitmap()) {
+                            IntPtr hBitmap = bitmap.GetHbitmap();
+                            ImageSource source =
+                                Imaging.CreateBitmapSourceFromHBitmap(
+                                    hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                                    BitmapSizeOptions.FromEmptyOptions());
+                            statusImage.Source = source;
+                            Icon = source;
+                        }
                     }
                 } else {
-                    using(Bitmap bitmap = Properties.Resources.Hedgehog_Red.ToBitmap()) {
-                        IntPtr hBitmap = bitmap.GetHbitmap();
-                        ImageSource source =
-                            Imaging.CreateBitmapSourceFromHBitmap(
-                                hBitmap, IntPtr.Zero, Int32Rect.Empty,
-                                BitmapSizeOptions.FromEmptyOptions());
-                        statusImage.Source = source;
-                        Icon = source;
+                    using(Icon icon = Properties.Resources.Hedgehog_Red) {
+                        using(Bitmap bitmap = icon.ToBitmap()) {
+                            IntPtr hBitmap = bitmap.GetHbitmap();
+                            ImageSource source =
+                                Imaging.CreateBitmapSourceFromHBitmap(
+                                    hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                                    BitmapSizeOptions.FromEmptyOptions());
+                            statusImage.Source = source;
+                            Icon = source;
+                        }
                     }
                 }
             } catch {
@@ -104,10 +114,10 @@ namespace HedgehogClient {
         }
 
         //Log to Console
-        private void Log(string message) {
+        private void Log(string message, LogType logType) {
             //invoke on main Thread
             Dispatcher.BeginInvoke(new Action(delegate {
-                logBox.Text += $"[{DateTime.Now:HH:mm:ss}] > " + message + Environment.NewLine;
+                logBox.Text += $"[{DateTime.Now:HH:mm:ss}] [{logType}] > " + message + Environment.NewLine;
                 logBox.ScrollToLine(logBox.LineCount - 2);
             }));
         }
@@ -115,7 +125,7 @@ namespace HedgehogClient {
         #region Socket
         //Connect the Server and give User Feedback
         private async void Connect() {
-            Log("Connecting to Hedgehog...");
+            Log("Connecting to Hedgehog...", LogType.Info);
             Cursor = Cursors.AppStarting;
             statusLabel.Content = "Connecting...";
             statusLabel.Foreground = Brushes.Orange;
@@ -131,7 +141,7 @@ namespace HedgehogClient {
                     byte[] buffer = new byte[1];
                     _client.Client.BeginReceive(buffer, 0, 1, SocketFlags.None, Received, null);
 
-                    Log("Connected!");
+                    Log("Connected!", LogType.Info);
                     Status = SocketStatus.Connected;
                     statusLabel.Content = "Connected";
                     statusLabel.Foreground = Brushes.Green;
@@ -140,8 +150,8 @@ namespace HedgehogClient {
                     throw new Exception("Could not connect to Hedgehog, wrong or no response!");
                 }
             } catch(Exception e) {
-                Log("ERROR: Error Connecting!");
-                Log("ERROR: " + e.Message);
+                Log("Error Connecting!", LogType.Error);
+                Log(e.Message, LogType.Error);
                 DisconnectButton.IsEnabled = false;
                 DisconnectButton.ToolTip = "Not yet connected";
                 Status = SocketStatus.Disconnected;
@@ -163,7 +173,7 @@ namespace HedgehogClient {
                 i += 10;
 
                 if(i >= SendTimeout) {
-                    Log("ERROR: Could not Send Message, Hedgehog Send Request Timed out!");
+                    Log("Could not Send Message, Hedgehog Send Request Timed out!", LogType.Error);
                     throw new HedgehogException("Hedgehog Send Request Timed out!");
                 }
             }
@@ -179,7 +189,7 @@ namespace HedgehogClient {
 
             //_currentKey = movementKey;
             _client.Client.BeginSend(message, 0, 1, SocketFlags.None, Sent, movementKey);
-            Log($"Sending Key [{movementKey}]...");
+            Log($"Sending Key [{movementKey}]...", LogType.Debug);
         }
 
         //Mesage Sent Callback
@@ -187,12 +197,32 @@ namespace HedgehogClient {
             ControlKeys.MovementKey key = (ControlKeys.MovementKey)result.AsyncState;
 
             if(result.IsCompleted) {
-                Log($"Key [{key}] sent!");
+                Log($"Key [{key}] sent!", LogType.Debug);
                 _tcs?.TrySetResult(true);
             } else {
-                Log($"Error sending [{key}] Key...");
+                Log($"Error sending [{key}] Key...", LogType.Error);
                 Disconnected(false, "Tried to send Message to Hedgehog, failed");
                 _tcs?.TrySetResult(false);
+            }
+
+            //Speed Indicator
+            try {
+                switch(key) {
+                    case ControlKeys.MovementKey.Minus: {
+                            int currentSpeed = int.Parse((string)speedLabel.Content);
+                            if(currentSpeed > 0)
+                                speedLabel.Content = currentSpeed - 1;
+                        }
+                        break;
+                    case ControlKeys.MovementKey.Plus: {
+                            int currentSpeed = int.Parse((string)speedLabel.Content);
+                            if(currentSpeed < 10)
+                                speedLabel.Content = currentSpeed + 1;
+                        }
+                        break;
+                }
+            } catch {
+                //ignored
             }
 
             Status = SocketStatus.Connected;
