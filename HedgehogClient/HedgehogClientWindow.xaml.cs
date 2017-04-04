@@ -1,10 +1,15 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Brushes = System.Windows.Media.Brushes;
 
 namespace HedgehogClient {
     /// <summary>
@@ -20,7 +25,7 @@ namespace HedgehogClient {
         private static TaskCompletionSource<bool> _tcs;
 
         //Port for Hedgehog Server
-        private const int Port = 8000;
+        private const int Port = 3131;
         //Timeout in Milliseconds for Sends
         private const int SendTimeout = 3000;
 
@@ -56,15 +61,20 @@ namespace HedgehogClient {
                 await _client.ConnectAsync(_address, Port);
 
                 if(_client.Connected) {
+                    byte[] buffer = new byte[1];
+                    _client.Client.BeginReceive(buffer, 0, 1, SocketFlags.None, Received, null);
+
                     Log("Connected!");
                     _status = SocketStatus.Connected;
                     statusLabel.Content = "Connected";
                     statusLabel.Foreground = Brushes.Green;
+                    SetHedgehogIcon(true);
                 } else {
                     Log("ERROR: Error Connecting!");
                     _status = SocketStatus.Disconnected;
                     statusLabel.Content = "Disconnected";
                     statusLabel.Foreground = Brushes.Red;
+                    SetHedgehogIcon(false);
                 }
             } catch(Exception e) {
                 Log("ERROR: Error Connecting!");
@@ -74,6 +84,7 @@ namespace HedgehogClient {
                 _status = SocketStatus.Disconnected;
                 statusLabel.Content = "Disconnected";
                 statusLabel.Foreground = Brushes.Red;
+                SetHedgehogIcon(false);
                 MessageBox.Show($"Could not Connect!\n\r{e.Message}", "Error Connecting to Hedgehog!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
@@ -157,47 +168,87 @@ namespace HedgehogClient {
         }
 
 
+        private void SetHedgehogIcon(bool green) {
+            try {
+                if(green) {
+                    Bitmap bitmap = Properties.Resources.Hedgehog_Green.ToBitmap();
+                    IntPtr hBitmap = bitmap.GetHbitmap();
+                    ImageSource source =
+                        Imaging.CreateBitmapSourceFromHBitmap(
+                            hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                            BitmapSizeOptions.FromEmptyOptions());
+                    statusImage.Source = source;
+                    Icon = source;
+                } else {
+                    Bitmap bitmap = Properties.Resources.Hedgehog_Red.ToBitmap();
+                    IntPtr hBitmap = bitmap.GetHbitmap();
+                    ImageSource source =
+                        Imaging.CreateBitmapSourceFromHBitmap(
+                            hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                            BitmapSizeOptions.FromEmptyOptions());
+                    statusImage.Source = source;
+                    Icon = source;
+                }
+            } catch {
+                //ignored
+            }
+        }
+
         private void Sent(IAsyncResult result) {
             _client.Client.EndSend(result);
 
             if(result.IsCompleted) {
-                _tcs.SetResult(true);
+                _tcs?.SetResult(true);
             } else {
-                Disconnected("Tried to send Message to Hedgehog, failed");
-                _tcs.SetResult(false);
+                Disconnected(false, "Tried to send Message to Hedgehog, failed");
+                _tcs?.SetResult(false);
             }
 
             _status = SocketStatus.Connected;
         }
 
-        private async void Disconnect(string message = null) {
+        //On Receive from Server => Socket closed
+        private void Received(IAsyncResult result) {
+            _client.Client.EndReceive(result);
+            Disconnected(false, "Server shut down connection!");
+        }
+
+        private async void Disconnect(bool byUser, string message = null) {
             while(_status == SocketStatus.Busy) {
                 await Task.Delay(10);
             }
 
             if(_status == SocketStatus.Connected) {
                 _client.Close();
-                Disconnected(message);
+                Disconnected(byUser, message);
             }
         }
 
-        private void Disconnected(string message = null) {
+        private void Disconnected(bool byUser, string message = null) {
             DisconnectButton.IsEnabled = false;
             DisconnectButton.ToolTip = "Already disconnected";
             _status = SocketStatus.Disconnected;
             statusLabel.Content = "Disconnected";
             statusLabel.Foreground = Brushes.Red;
+            SetHedgehogIcon(false);
 
             string msgBoxText = "The connection to the Hedgehog has been lost!";
             if(message != null) {
                 msgBoxText += "\n\r" + message;
             }
 
-            MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
+            if(!byUser)
+                MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void DisconnectClick(object sender, RoutedEventArgs e) {
-            Disconnect("Disconnected by User.");
+            Disconnect(true, "Disconnected by User.");
+        }
+
+        private void WindowClosing(object sender, CancelEventArgs e) {
+            Disconnect(true, "Window closed");
+
+            new MainWindow().Show();
         }
     }
 }

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Hedgehog Controller" Height="400" Width="400" KeyDown="WindowKeyDown" KeyUp="WindowKeyUp">
+        Title="Hedgehog Controller" Height="400" Width="400" MinHeight="100" MinWidth="100" KeyDown="WindowKeyDown" KeyUp="WindowKeyUp" Closing="WindowClosing">
     <Grid Margin="10">
         <StackPanel>
             <Grid>
@@ -19,7 +19,11 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Row="0" Grid.Column="0">Status:</Label>
-                <Label Grid.Row="0" Grid.Column="1" Name="statusLabel" Foreground="Red">Disconnected</Label>
+
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                    <Label Name="statusLabel" Foreground="Red">Disconnected</Label>
+                    <Image Height="30" Width="30" Name="statusImage" Source="Resources/Hedgehog_Red.ico"/>
+                </StackPanel>
 
                 <Label Grid.Row="1" Grid.Column="0">IP:</Label>
                 <Label Grid.Row="1" Grid.Column="1" Name="ipLabel">localhost</Label>
