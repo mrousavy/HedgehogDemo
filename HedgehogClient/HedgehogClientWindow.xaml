@@ -5,16 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HedgehogClient"
         mc:Ignorable="d"
-        Title="Hedgehog Controller" Height="400" Width="400" KeyDown="WindowKeyDown">
+        Title="Hedgehog Controller" Height="400" Width="400" KeyDown="WindowKeyDown" KeyUp="WindowKeyUp">
     <Grid Margin="10">
         <StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label>Status:</Label>
                 <Label Name="statusLabel" Foreground="Red">Disconnected</Label>
             </StackPanel>
-            
-            
         </StackPanel>
         
+        <TextBox Focusable="False" IsReadOnly="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="50" Name="logBox"></TextBox>
     </Grid>
 </Window>

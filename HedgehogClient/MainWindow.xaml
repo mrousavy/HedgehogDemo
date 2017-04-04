@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HedgehogClient"
         mc:Ignorable="d"
-        Title="Hedgehog Client" Height="150" Width="300" MinHeight="100" MinWidth="200">
+        Title="Hedgehog Client" Height="150" Width="300" MinHeight="100" MinWidth="200" WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="20">
             <Label>IP Address:</Label>
