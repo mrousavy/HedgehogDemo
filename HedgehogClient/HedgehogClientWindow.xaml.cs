@@ -19,6 +19,14 @@ namespace HedgehogClient {
         private readonly IPAddress _address;
         private TcpClient _client;
         private SocketStatus _status;
+
+        private SocketStatus Status {
+            get { return _status; }
+            set {
+                Cursor = value == SocketStatus.Busy ? Cursors.Wait : Cursors.Arrow;
+                _status = value;
+            }
+        }
         private ControlKeys.MovementKey _currentKey = ControlKeys.MovementKey.Stop;
 
         private static TaskCompletionSource<bool> _tcs;
@@ -77,15 +85,16 @@ namespace HedgehogClient {
             Dispatcher.BeginInvoke(new Action(delegate {
                 DisconnectButton.IsEnabled = false;
                 DisconnectButton.ToolTip = "Already disconnected";
-                _status = SocketStatus.Disconnected;
+                Status = SocketStatus.Disconnected;
                 statusLabel.Content = "Disconnected";
                 statusLabel.Foreground = Brushes.Red;
-                SetHedgehogIcon(false);
 
                 string msgBoxText = "The connection to the Hedgehog has been lost!";
                 if(message != null) {
                     msgBoxText += "\n\r" + message;
                 }
+
+                SetHedgehogIcon(false);
 
                 if(!byUser)
                     MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -94,8 +103,11 @@ namespace HedgehogClient {
 
         //Log to Console
         private void Log(string message) {
-            logBox.Text += $"[{DateTime.Now:HH:mm:ss}] > " + message + Environment.NewLine;
-            logBox.ScrollToLine(logBox.LineCount - 2);
+            //invoke on main Thread
+            Dispatcher.BeginInvoke(new Action(delegate {
+                logBox.Text += $"[{DateTime.Now:HH:mm:ss}] > " + message + Environment.NewLine;
+                logBox.ScrollToLine(logBox.LineCount - 2);
+            }));
         }
 
         #region Socket
@@ -109,7 +121,7 @@ namespace HedgehogClient {
             _client = new TcpClient();
 
             try {
-                _status = SocketStatus.Connecting;
+                Status = SocketStatus.Connecting;
 
                 await _client.ConnectAsync(_address, Port);
 
@@ -118,7 +130,7 @@ namespace HedgehogClient {
                     _client.Client.BeginReceive(buffer, 0, 1, SocketFlags.None, Received, null);
 
                     Log("Connected!");
-                    _status = SocketStatus.Connected;
+                    Status = SocketStatus.Connected;
                     statusLabel.Content = "Connected";
                     statusLabel.Foreground = Brushes.Green;
                     SetHedgehogIcon(true);
@@ -130,7 +142,7 @@ namespace HedgehogClient {
                 Log("ERROR: " + e.Message);
                 DisconnectButton.IsEnabled = false;
                 DisconnectButton.ToolTip = "Not yet connected";
-                _status = SocketStatus.Disconnected;
+                Status = SocketStatus.Disconnected;
                 statusLabel.Content = "Disconnected";
                 statusLabel.Foreground = Brushes.Red;
                 SetHedgehogIcon(false);
@@ -144,7 +156,7 @@ namespace HedgehogClient {
         private async Task SendKey(ControlKeys.MovementKey movementKey) {
             int i = 0;
 
-            while(_status == SocketStatus.Busy) {
+            while(Status == SocketStatus.Busy) {
                 await Task.Delay(10);
                 i += 10;
 
@@ -154,17 +166,18 @@ namespace HedgehogClient {
                 }
             }
 
-            if(_status == SocketStatus.Disconnected || _status == SocketStatus.Connecting) {
+            if(Status == SocketStatus.Disconnected || Status == SocketStatus.Connecting) {
                 throw new HedgehogException("Not connected to Hedgehog!");
             }
 
-            _status = SocketStatus.Busy;
+            Status = SocketStatus.Busy;
 
             byte key = (byte)movementKey;
             byte[] message = { key };
 
-            _currentKey = movementKey;
+            //_currentKey = movementKey;
             _client.Client.BeginSend(message, 0, 1, SocketFlags.None, Sent, null);
+            Log($"Sending Key [{movementKey}]...");
         }
 
         //Mesage Sent Callback
@@ -172,28 +185,31 @@ namespace HedgehogClient {
             _client.Client.EndSend(result);
 
             if(result.IsCompleted) {
-                _tcs?.SetResult(true);
+                _tcs?.TrySetResult(true);
             } else {
                 Disconnected(false, "Tried to send Message to Hedgehog, failed");
-                _tcs?.SetResult(false);
+                _tcs?.TrySetResult(false);
             }
 
-            _status = SocketStatus.Connected;
+            Log("Key sent!");
+            Status = SocketStatus.Connected;
         }
 
         //Message Received Callback       | On Receive from Server => Socket closed
         private void Received(IAsyncResult result) {
-            _client.Client.EndReceive(result);
-            Disconnected(false, "Server shut down connection!");
+            try {
+                _client.Client.EndReceive(result);
+                Disconnected(false, "Server shut down connection!");
+            } catch { }
         }
 
         //Disconnect the Client
         private async void Disconnect(bool byUser, string message = null) {
-            while(_status == SocketStatus.Busy) {
+            while(Status == SocketStatus.Busy) {
                 await Task.Delay(10);
             }
 
-            if(_status == SocketStatus.Connected) {
+            if(Status == SocketStatus.Connected) {
                 _client.Close();
                 Disconnected(byUser, message);
             }
@@ -224,10 +240,6 @@ namespace HedgehogClient {
                 Key key = e.Key;
                 ControlKeys.MovementKey movementKey = ControlKeys.GetKey(key);
                 _currentKey = movementKey;
-
-                //DEBUG
-                _status = SocketStatus.Busy;
-
 
                 _tcs = new TaskCompletionSource<bool>();
                 await SendKey(ControlKeys.MovementKey.Stop);

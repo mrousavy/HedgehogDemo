@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HedgehogClient"
         mc:Ignorable="d"
         Title="Hedgehog Client" Height="150" Width="300" MinHeight="100" MinWidth="200" WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
@@ -11,7 +10,26 @@
             <Label>IP Address:</Label>
             <TextBox Width="150" Height="20" HorizontalAlignment="Left" Name="ipBox" KeyDown="IpBox_OnKeyDown"></TextBox>
         </StackPanel>
-        
+
+
+        <Image VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="30" Height="30" Source="Resources/Hedgehog_Green.ico">
+            <Image.RenderTransform>
+                <RotateTransform x:Name="noFreeze" CenterX="15" CenterY="15"/>
+            </Image.RenderTransform>
+            
+            <Image.Triggers>
+                <EventTrigger RoutedEvent="Image.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
+            To="360" Duration="0:0:5" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Image.Triggers>
+
+        </Image>
+
         <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="50" Click="ConnectClick">Connect</Button>
     </Grid>
 </Window>
