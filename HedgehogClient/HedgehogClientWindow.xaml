@@ -11,6 +11,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -22,9 +23,14 @@
 
                 <Label Grid.Row="1" Grid.Column="0">IP:</Label>
                 <Label Grid.Row="1" Grid.Column="1" Name="ipLabel">localhost</Label>
+
+                <Label Grid.Row="2" Grid.Column="0">Moving:</Label>
+                <Label Grid.Row="2" Grid.Column="1" Name="keyLabel">/</Label>
             </Grid>
         </StackPanel>
         
-        <TextBox Focusable="False" IsReadOnly="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="50" Name="logBox" TextWrapping="Wrap"/>
+        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Height="25" Width="80" Margin="10" Click="DisconnectClick" Name="DisconnectButton">Disconnect</Button>
+        
+        <TextBox IsReadOnly="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="100" Name="logBox" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible"/>
     </Grid>
 </Window>

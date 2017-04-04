@@ -43,5 +43,23 @@ namespace HedgehogClient {
                     throw new Exception("Wrong Input");
             }
         }
+
+
+        public static string FriendlyStatus(MovementKey key) {
+            switch(key) {
+                case MovementKey.W:
+                    return "Forwards";
+                case MovementKey.A:
+                    return "Left";
+                case MovementKey.S:
+                    return "Backwards";
+                case MovementKey.D:
+                    return "Right";
+                case MovementKey.Space:
+                    return "Braking";
+                default:
+                    return "/";
+            }
+        }
     }
 }

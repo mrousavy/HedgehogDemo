@@ -16,6 +16,8 @@ namespace HedgehogClient {
         private TcpClient _client;
         private SocketStatus _status;
 
+        private static TaskCompletionSource<bool> _tcs;
+
         private const int _port = 8000;
 
 
@@ -63,6 +65,8 @@ namespace HedgehogClient {
             } catch(Exception e) {
                 Log("Error Connecting!");
                 Log(e.Message);
+                DisconnectButton.IsEnabled = false;
+                DisconnectButton.ToolTip = "Not yet connected";
                 _status = SocketStatus.Disconnected;
                 statusLabel.Content = "Disconnected";
                 statusLabel.Foreground = Brushes.Red;
@@ -73,8 +77,6 @@ namespace HedgehogClient {
         }
 
 
-
-
         //Log to Console
         private void Log(string message) {
             logBox.Text += $"({DateTime.Now:HH:mm:ss}) > " + message + Environment.NewLine;
@@ -82,31 +84,49 @@ namespace HedgehogClient {
         }
 
         //KeyDown Locks a Key (e.g. W) and drives forward till KeyUp)
-        private void WindowKeyDown(object sender, KeyEventArgs e) {
+        private async void WindowKeyDown(object sender, KeyEventArgs e) {
             try {
+                keyLabel.Content = "Sending...";
+
+                _tcs = new TaskCompletionSource<bool>();
+                await SendKey(ControlKeys.MovementKey.Stop);
+                await _tcs.Task;
+
                 Key key = e.Key;
 
                 ControlKeys.MovementKey movementKey = ControlKeys.GetKey(key);
 
-                SendKey(movementKey);
+                keyLabel.Content = ControlKeys.FriendlyStatus(movementKey);
+
+                _tcs = new TaskCompletionSource<bool>();
+                await SendKey(movementKey);
+                await _tcs.Task;
             } catch {
                 //Wrong input
             }
         }
 
         //KeyUp Unlocks a Key (e.g. W)
-        private void WindowKeyUp(object sender, KeyEventArgs e) {
-            SendKey(ControlKeys.MovementKey.Stop);
+        private async void WindowKeyUp(object sender, KeyEventArgs e) {
+            try {
+                await SendKey(ControlKeys.MovementKey.Stop);
+            } catch {
+                // ignored
+            }
+
+            keyLabel.Content = "/";
         }
 
-        private async void SendKey(ControlKeys.MovementKey movementKey) {
+        private async Task SendKey(ControlKeys.MovementKey movementKey) {
             while(_status == SocketStatus.Busy) {
                 await Task.Delay(10);
             }
 
             if(_status == SocketStatus.Disconnected || _status == SocketStatus.Connecting) {
-                return;
+                throw new Exception("Not connected to Hedgehog!");
             }
+
+            _status = SocketStatus.Busy;
 
             byte key = (byte)movementKey;
             byte[] message = { key };
@@ -116,14 +136,32 @@ namespace HedgehogClient {
 
 
         private void Sent(IAsyncResult result) {
+            _client.Client.EndSend(result);
+
             if(result.IsCompleted) {
-                Console.WriteLine("Sent!");
+                _tcs.SetResult(true);
             } else {
                 Disconnected("Tried to send Message to Hedgehog, failed");
+                _tcs.SetResult(false);
+            }
+
+            _status = SocketStatus.Connected;
+        }
+
+        private async void Disconnect(string message = null) {
+            while(_status == SocketStatus.Busy) {
+                await Task.Delay(10);
+            }
+
+            if(_status == SocketStatus.Connected) {
+                _client.Close();
+                Disconnected(message);
             }
         }
 
         private void Disconnected(string message = null) {
+            DisconnectButton.IsEnabled = false;
+            DisconnectButton.ToolTip = "Already disconnected";
             _status = SocketStatus.Disconnected;
             statusLabel.Content = "Disconnected";
             statusLabel.Foreground = Brushes.Red;
@@ -134,6 +172,10 @@ namespace HedgehogClient {
             }
 
             MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void DisconnectClick(object sender, RoutedEventArgs e) {
+            Disconnect("Disconnected by User.");
         }
     }
 }
