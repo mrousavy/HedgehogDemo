@@ -91,7 +91,7 @@ namespace HedgehogClient {
 
         //Log to Console
         private void Log(string message) {
-            logBox.Text += $"({DateTime.Now:HH:mm:ss}) > " + message + Environment.NewLine;
+            logBox.Text += $"[{DateTime.Now:HH:mm:ss}] > " + message + Environment.NewLine;
             logBox.ScrollToLine(logBox.LineCount - 2);
         }
 
