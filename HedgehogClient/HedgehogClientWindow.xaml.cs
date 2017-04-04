@@ -149,6 +149,9 @@ namespace HedgehogClient {
             }));
         }
 
+
+
+
         #region Socket
         //Connect the Server and give User Feedback
         private async void Connect() {
@@ -260,6 +263,14 @@ namespace HedgehogClient {
             }
 
             if(Status == SocketStatus.Connected) {
+                try {
+                    _tcs = new TaskCompletionSource<bool>();
+                    await SendKey(ControlKeys.MovementKey.NullByte);
+                    await _tcs.Task;
+                } catch {
+                    //already disconnected
+                }
+
                 _client.Close();
                 Disconnected(byUser, message);
             }

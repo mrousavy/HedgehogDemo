@@ -11,6 +11,7 @@ namespace HedgehogClient {
 
 
         public enum MovementKey {
+            NullByte = -1,  //Disconnect Message
             W = 0,          //Forward
             A = 1,          //Left
             S = 2,          //Back
