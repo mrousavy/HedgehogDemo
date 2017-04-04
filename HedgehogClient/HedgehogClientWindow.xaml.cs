@@ -174,7 +174,10 @@ namespace HedgehogClient {
             if(result.IsCompleted) {
                 _tcs?.SetResult(true);
             } else {
-                Disconnected(false, "Tried to send Message to Hedgehog, failed");
+                //Invoke to main Thread
+                Dispatcher.BeginInvoke(new Action(delegate {
+                    Disconnected(false, "Tried to send Message to Hedgehog, failed");
+                }));
                 _tcs?.SetResult(false);
             }
 
@@ -195,7 +198,9 @@ namespace HedgehogClient {
 
             if(_status == SocketStatus.Connected) {
                 _client.Close();
-                Disconnected(byUser, message);
+                await Dispatcher.BeginInvoke(new Action(delegate {
+                    Disconnected(byUser, message);
+                }));
             }
         }
         #endregion

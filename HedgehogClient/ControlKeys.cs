@@ -15,7 +15,7 @@ namespace HedgehogClient {
             Plus = 4,       //Speed Up
             Minus = 5,      //Speed Down
             Space = 6,      //Hand Brake
-            Stop = 7       //Stop any Movement
+            Stop = 7        //Stop any Movement
         }
 
         public static MovementKey GetKey(Key? key) {
