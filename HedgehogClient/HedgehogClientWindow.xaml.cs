@@ -23,7 +23,7 @@ namespace HedgehogClient {
         private SocketStatus Status {
             get { return _status; }
             set {
-                Cursor = value == SocketStatus.Busy ? Cursors.Wait : Cursors.Arrow;
+                ChangeCursor(value == SocketStatus.Busy);
                 _status = value;
             }
         }
@@ -214,6 +214,13 @@ namespace HedgehogClient {
                 Disconnected(byUser, message);
             }
         }
+
+        //Change to Loading or normal Cursor
+        private void ChangeCursor(bool loading) {
+            Dispatcher.BeginInvoke(new Action(delegate {
+                Cursor = loading ? Cursors.Wait : Cursors.Arrow;
+            }));
+        }
         #endregion
 
         #region Action Listeners
@@ -259,6 +266,11 @@ namespace HedgehogClient {
         //Disconnect Button
         private void DisconnectClick(object sender, RoutedEventArgs e) {
             Disconnect(true, "Disconnected by User.");
+        }
+
+        //Clear Button
+        private void ClearClick(object sender, RoutedEventArgs e) {
+            logBox.Clear();
         }
 
         //Close Window
