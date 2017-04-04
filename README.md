@@ -1,6 +1,10 @@
 # HedgehogDemoController
 Controller for PRIA Hedgehog Demo
 
+[Download Client](https://github.com/mrousavy/HedgehogDemoController/raw/master/Download/HedgehogClient.zip)
+
+[Download Server](https://github.com/mrousavy/HedgehogDemoController/raw/master/HedgehogServer/server.py)
+
 # Usage
 1. Setup `Hedgehog` with Python Project (`HedgehogServer`)
 2. Start Server on `Hedgehog`
