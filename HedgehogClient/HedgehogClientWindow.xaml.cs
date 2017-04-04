@@ -15,10 +15,14 @@ namespace HedgehogClient {
         private IPEndPoint _endPoint;
         private TcpClient _client;
         private SocketStatus _status;
+        private ControlKeys.MovementKey _currentKey = ControlKeys.MovementKey.Stop;
 
         private static TaskCompletionSource<bool> _tcs;
 
-        private const int _port = 8000;
+        //Port for Hedgehog Server
+        private const int Port = 8000;
+        //Timeout in Milliseconds for Sends
+        private const int SendTimeout = 3000;
 
 
         private enum SocketStatus {
@@ -32,7 +36,7 @@ namespace HedgehogClient {
         public HedgehogClientWindow(IPAddress address) {
             InitializeComponent();
             _address = address;
-            ipLabel.Content = _address + ":" + _port;
+            ipLabel.Content = _address + ":" + Port;
 
             Connect();
         }
@@ -43,13 +47,13 @@ namespace HedgehogClient {
             statusLabel.Content = "Connecting...";
             statusLabel.Foreground = Brushes.Orange;
 
-            _endPoint = new IPEndPoint(_address, _port);
+            _endPoint = new IPEndPoint(_address, Port);
             _client = new TcpClient();
 
             try {
                 _status = SocketStatus.Connecting;
 
-                await _client.ConnectAsync(_address, _port);
+                await _client.ConnectAsync(_address, Port);
 
                 if(_client.Connected) {
                     Log("Connected!");
@@ -57,14 +61,14 @@ namespace HedgehogClient {
                     statusLabel.Content = "Connected";
                     statusLabel.Foreground = Brushes.Green;
                 } else {
-                    Log("Error Connecting!");
+                    Log("ERROR: Error Connecting!");
                     _status = SocketStatus.Disconnected;
                     statusLabel.Content = "Disconnected";
                     statusLabel.Foreground = Brushes.Red;
                 }
             } catch(Exception e) {
-                Log("Error Connecting!");
-                Log(e.Message);
+                Log("ERROR: Error Connecting!");
+                Log("ERROR: " + e.Message);
                 DisconnectButton.IsEnabled = false;
                 DisconnectButton.ToolTip = "Not yet connected";
                 _status = SocketStatus.Disconnected;
@@ -86,22 +90,30 @@ namespace HedgehogClient {
         //KeyDown Locks a Key (e.g. W) and drives forward till KeyUp)
         private async void WindowKeyDown(object sender, KeyEventArgs e) {
             try {
+                if(_currentKey != ControlKeys.MovementKey.Stop)
+                    return;
+
                 keyLabel.Content = "Sending...";
+
+                Key key = e.Key;
+                ControlKeys.MovementKey movementKey = ControlKeys.GetKey(key);
+                _currentKey = movementKey;
+
+                //DEBUG
+                _status = SocketStatus.Busy;
+
 
                 _tcs = new TaskCompletionSource<bool>();
                 await SendKey(ControlKeys.MovementKey.Stop);
                 await _tcs.Task;
 
-                Key key = e.Key;
-
-                ControlKeys.MovementKey movementKey = ControlKeys.GetKey(key);
-
-                keyLabel.Content = ControlKeys.FriendlyStatus(movementKey);
-
                 _tcs = new TaskCompletionSource<bool>();
                 await SendKey(movementKey);
                 await _tcs.Task;
+
+                keyLabel.Content = ControlKeys.FriendlyStatus(movementKey);
             } catch {
+                keyLabel.Content = "/";
                 //Wrong input
             }
         }
@@ -109,6 +121,7 @@ namespace HedgehogClient {
         //KeyUp Unlocks a Key (e.g. W)
         private async void WindowKeyUp(object sender, KeyEventArgs e) {
             try {
+                _currentKey = ControlKeys.MovementKey.Stop;
                 await SendKey(ControlKeys.MovementKey.Stop);
             } catch {
                 // ignored
@@ -118,12 +131,20 @@ namespace HedgehogClient {
         }
 
         private async Task SendKey(ControlKeys.MovementKey movementKey) {
+            int i = 0;
+
             while(_status == SocketStatus.Busy) {
                 await Task.Delay(10);
+                i += 10;
+
+                if(i >= SendTimeout) {
+                    Log("ERROR: Could not Send Message, Hedgehog Send Request Timed out!");
+                    throw new HedgehogException("Hedgehog Send Request Timed out!");
+                }
             }
 
             if(_status == SocketStatus.Disconnected || _status == SocketStatus.Connecting) {
-                throw new Exception("Not connected to Hedgehog!");
+                throw new HedgehogException("Not connected to Hedgehog!");
             }
 
             _status = SocketStatus.Busy;
@@ -131,6 +152,7 @@ namespace HedgehogClient {
             byte key = (byte)movementKey;
             byte[] message = { key };
 
+            _currentKey = movementKey;
             _client.Client.BeginSend(message, 0, 1, SocketFlags.None, Sent, null);
         }
 

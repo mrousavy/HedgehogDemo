@@ -70,6 +70,7 @@
     <Compile Include="HedgehogClientWindow.xaml.cs">
       <DependentUpon>HedgehogClientWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="HedgehogException.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
