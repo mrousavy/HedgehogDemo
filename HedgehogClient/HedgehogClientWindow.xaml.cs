@@ -57,6 +57,7 @@ namespace HedgehogClient {
             ipLabel.Content = Address + ":" + Port;
 
             Connect();
+            ControlKeys.RegisterXboxInput(WindowKeyDown);
         }
 
         //Set Green or Red Hedgehog Icon
@@ -127,6 +128,22 @@ namespace HedgehogClient {
                 } else {
                     logBox.AppendText($"[{DateTime.Now:HH:mm:ss}] [{logType}] > " + message + Environment.NewLine);
                     logBox.ScrollToEnd();
+                }
+            }));
+        }
+
+        private void UpdateSpeed(bool increase) {
+            Dispatcher.BeginInvoke(new Action(delegate {
+                try {
+                    if(increase) {
+                        if(_currentSpeed < 10)
+                            speedLabel.Content = (++_currentSpeed).ToString();
+                    } else {
+                        if(_currentSpeed > 0)
+                            speedLabel.Content = (--_currentSpeed).ToString();
+                    }
+                } catch {
+                    //ignored
                 }
             }));
         }
@@ -215,21 +232,10 @@ namespace HedgehogClient {
             }
 
             //Speed Indicator
-            try {
-                switch(key) {
-                    case ControlKeys.MovementKey.Minus: {
-                            if(_currentSpeed > 0)
-                                speedLabel.Content = (--_currentSpeed).ToString();
-                        }
-                        break;
-                    case ControlKeys.MovementKey.Plus: {
-                            if(_currentSpeed < 10)
-                                speedLabel.Content = (--_currentSpeed).ToString();
-                        }
-                        break;
-                }
-            } catch {
-                //ignored
+            if(key == ControlKeys.MovementKey.Plus) {
+                UpdateSpeed(true);
+            } else if(key == ControlKeys.MovementKey.Minus) {
+                UpdateSpeed(false);
             }
 
             Status = SocketStatus.Connected;

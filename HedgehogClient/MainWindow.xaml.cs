@@ -10,6 +10,8 @@ namespace HedgehogClient {
         public MainWindow() {
             InitializeComponent();
             ipBox.Focus();
+            ipBox.Text = IpStore.Load();
+            ipBox.SelectAll();
         }
 
         private void ConnectClick(object sender, RoutedEventArgs e) {
@@ -25,9 +27,14 @@ namespace HedgehogClient {
 
         private void IpSubmit() {
             if(IPAddress.TryParse(ipBox.Text, out IPAddress address)) {
+                //Save IP to file
+                IpStore.Save(ipBox.Text);
+
+                //Open Hedgehog Controller and close this window
                 new HedgehogClientWindow(address).Show();
                 Close();
             } else {
+                //Error on IP
                 MessageBox.Show("Please enter a valid IP Address!", "Wrong IP Format!", MessageBoxButton.OK, MessageBoxImage.Error);
                 ipBox.Focus();
                 ipBox.SelectAll();

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Hedgehog Client" Height="150" Width="300" MinHeight="100" MinWidth="200" WindowStartupLocation="CenterScreen">
+        Title="Hedgehog Client" Height="150" Width="300" MinHeight="130" MinWidth="300" WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="20">
             <Label>IP Address:</Label>

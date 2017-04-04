@@ -11,5 +11,13 @@ namespace HedgehogClient {
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application {
+
+        public App() : base() {
+            Exit += delegate {
+                //Dispose Xbox Thread
+                if(ControlKeys.XboxControllerThread != null)
+                    ControlKeys.XboxControllerThread.Abort();
+            };
+        }
     }
 }
