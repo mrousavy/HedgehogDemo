@@ -118,8 +118,16 @@ namespace HedgehogClient {
         private void Log(string message, LogType logType) {
             //invoke on main Thread
             Dispatcher.BeginInvoke(new Action(delegate {
-                logBox.Text += $"[{DateTime.Now:HH:mm:ss}] [{logType}] > " + message + Environment.NewLine;
-                logBox.ScrollToLine(logBox.LineCount - 2);
+                //Only show Debug Log when DEBUG mode is enabled
+                if(logType == LogType.Debug) {
+#if DEBUG
+                    logBox.AppendText($"[{DateTime.Now:HH:mm:ss}] [{logType}] > " + message + Environment.NewLine);
+                    logBox.ScrollToEnd();
+#endif
+                } else {
+                    logBox.AppendText($"[{DateTime.Now:HH:mm:ss}] [{logType}] > " + message + Environment.NewLine);
+                    logBox.ScrollToEnd();
+                }
             }));
         }
 
