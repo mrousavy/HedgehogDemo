@@ -35,6 +35,7 @@ namespace HedgehogClient {
             Busy
         }
 
+        //Constructor
         public HedgehogClientWindow(IPAddress address) {
             InitializeComponent();
             _address = address;
@@ -119,11 +120,7 @@ namespace HedgehogClient {
                     statusLabel.Foreground = Brushes.Green;
                     SetHedgehogIcon(true);
                 } else {
-                    Log("ERROR: Error Connecting!");
-                    _status = SocketStatus.Disconnected;
-                    statusLabel.Content = "Disconnected";
-                    statusLabel.Foreground = Brushes.Red;
-                    SetHedgehogIcon(false);
+                    throw new Exception("Could not connect to Hedgehog, wrong or no response!");
                 }
             } catch(Exception e) {
                 Log("ERROR: Error Connecting!");
