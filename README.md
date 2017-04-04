@@ -9,14 +9,14 @@ Controller for PRIA Hedgehog Demo
 5. Input Keys to move in the new Window once Connected
 
 # Controls
-* W: Forwards
-* A: Left
-* S: Backwards
-* D: Right
-* +: Speed Up
-* -: Speed Down
-* Space: Brake
-* [No Key]: Hedgehog Stops
+* `W`: Forwards
+* `A`: Left
+* `S`: Backwards
+* `D`: Right
+* `+`: Speed Up
+* `-`: Speed Down
+* `Space`: Brake
+* `[No Key]`: Hedgehog Stops
 
 # Screenshots
 ![Screenshot 1](http://i.imgur.com/k3OHZlr.png)
