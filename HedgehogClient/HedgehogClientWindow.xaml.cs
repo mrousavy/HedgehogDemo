@@ -56,23 +56,25 @@ namespace HedgehogClient {
         private void SetHedgehogIcon(bool green) {
             try {
                 if(green) {
-                    Bitmap bitmap = Properties.Resources.Hedgehog_Green.ToBitmap();
-                    IntPtr hBitmap = bitmap.GetHbitmap();
-                    ImageSource source =
-                        Imaging.CreateBitmapSourceFromHBitmap(
-                            hBitmap, IntPtr.Zero, Int32Rect.Empty,
-                            BitmapSizeOptions.FromEmptyOptions());
-                    statusImage.Source = source;
-                    Icon = source;
+                    using(Bitmap bitmap = Properties.Resources.Hedgehog_Green.ToBitmap()) {
+                        IntPtr hBitmap = bitmap.GetHbitmap();
+                        ImageSource source =
+                            Imaging.CreateBitmapSourceFromHBitmap(
+                                hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                                BitmapSizeOptions.FromEmptyOptions());
+                        statusImage.Source = source;
+                        Icon = source;
+                    }
                 } else {
-                    Bitmap bitmap = Properties.Resources.Hedgehog_Red.ToBitmap();
-                    IntPtr hBitmap = bitmap.GetHbitmap();
-                    ImageSource source =
-                        Imaging.CreateBitmapSourceFromHBitmap(
-                            hBitmap, IntPtr.Zero, Int32Rect.Empty,
-                            BitmapSizeOptions.FromEmptyOptions());
-                    statusImage.Source = source;
-                    Icon = source;
+                    using(Bitmap bitmap = Properties.Resources.Hedgehog_Red.ToBitmap()) {
+                        IntPtr hBitmap = bitmap.GetHbitmap();
+                        ImageSource source =
+                            Imaging.CreateBitmapSourceFromHBitmap(
+                                hBitmap, IntPtr.Zero, Int32Rect.Empty,
+                                BitmapSizeOptions.FromEmptyOptions());
+                        statusImage.Source = source;
+                        Icon = source;
+                    }
                 }
             } catch {
                 //ignored
@@ -176,23 +178,25 @@ namespace HedgehogClient {
             byte[] message = { key };
 
             //_currentKey = movementKey;
-            _client.Client.BeginSend(message, 0, 1, SocketFlags.None, Sent, null);
+            _client.Client.BeginSend(message, 0, 1, SocketFlags.None, Sent, movementKey);
             Log($"Sending Key [{movementKey}]...");
         }
 
         //Mesage Sent Callback
         private void Sent(IAsyncResult result) {
-            _client.Client.EndSend(result);
+            ControlKeys.MovementKey key = (ControlKeys.MovementKey)result.AsyncState;
 
             if(result.IsCompleted) {
+                Log($"Key [{key}] sent!");
                 _tcs?.TrySetResult(true);
             } else {
+                Log($"Error sending [{key}] Key...");
                 Disconnected(false, "Tried to send Message to Hedgehog, failed");
                 _tcs?.TrySetResult(false);
             }
 
-            Log("Key sent!");
             Status = SocketStatus.Connected;
+            _client.Client.EndSend(result);
         }
 
         //Message Received Callback       | On Receive from Server => Socket closed
