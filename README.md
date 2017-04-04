@@ -1,5 +1,7 @@
 # HedgehogDemoController
-Controller for PRIA Hedgehog Demo
+TGM 2017: A SYT (Koppensteiner) Project: Server/Host and Controller/Client for a PRIA Hedgehog
+
+This Project is showcasing using the Web IDE of PRIA Hedgehogs
 
 [Download Client](https://github.com/mrousavy/HedgehogDemoController/raw/master/Download/HedgehogClient.zip)
 
