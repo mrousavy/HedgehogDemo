@@ -73,20 +73,23 @@ namespace HedgehogClient {
 
         //Disconnected Callback
         private void Disconnected(bool byUser, string message = null) {
-            DisconnectButton.IsEnabled = false;
-            DisconnectButton.ToolTip = "Already disconnected";
-            _status = SocketStatus.Disconnected;
-            statusLabel.Content = "Disconnected";
-            statusLabel.Foreground = Brushes.Red;
-            SetHedgehogIcon(false);
+            //Run on Main Thread
+            Dispatcher.BeginInvoke(new Action(delegate {
+                DisconnectButton.IsEnabled = false;
+                DisconnectButton.ToolTip = "Already disconnected";
+                _status = SocketStatus.Disconnected;
+                statusLabel.Content = "Disconnected";
+                statusLabel.Foreground = Brushes.Red;
+                SetHedgehogIcon(false);
 
-            string msgBoxText = "The connection to the Hedgehog has been lost!";
-            if(message != null) {
-                msgBoxText += "\n\r" + message;
-            }
+                string msgBoxText = "The connection to the Hedgehog has been lost!";
+                if(message != null) {
+                    msgBoxText += "\n\r" + message;
+                }
 
-            if(!byUser)
-                MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
+                if(!byUser)
+                    MessageBox.Show(msgBoxText, "Disconnected", MessageBoxButton.OK, MessageBoxImage.Error);
+            }));
         }
 
         //Log to Console
@@ -171,10 +174,7 @@ namespace HedgehogClient {
             if(result.IsCompleted) {
                 _tcs?.SetResult(true);
             } else {
-                //Invoke to main Thread
-                Dispatcher.BeginInvoke(new Action(delegate {
-                    Disconnected(false, "Tried to send Message to Hedgehog, failed");
-                }));
+                Disconnected(false, "Tried to send Message to Hedgehog, failed");
                 _tcs?.SetResult(false);
             }
 
@@ -195,9 +195,7 @@ namespace HedgehogClient {
 
             if(_status == SocketStatus.Connected) {
                 _client.Close();
-                await Dispatcher.BeginInvoke(new Action(delegate {
-                    Disconnected(byUser, message);
-                }));
+                Disconnected(byUser, message);
             }
         }
         #endregion
