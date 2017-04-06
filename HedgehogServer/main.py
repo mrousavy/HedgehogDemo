@@ -42,18 +42,21 @@ def printSpeed():
 
 # Main
 with connect() as hedgehog:
+    stop()
+    
     global SPEED
     
     IP = socket.gethostbyname(socket.gethostname())
     PORT = 3131
     BUFFER_SIZE = 1
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((IP, PORT))
     
     while True:
         SPEED = 500
         
-        print("Server listening at " + str(IP) + ":" + str(PORT))
+        print("Server listening")
         server.listen(5)
         
         connection, client_address = server.accept()
@@ -70,7 +73,8 @@ with connect() as hedgehog:
                 print("[" + str(client_address[0]) + "] Received: " + str(data))
                 
                 # Do movement
-                if data == -1:
+                if data == -1 or data == 255:
+                    stop()
                     break
                 elif data == 0:
                    forward()
