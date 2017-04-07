@@ -36,6 +36,11 @@ def decreaseSpeed():
     if (SPEED > 0):
         SPEED = SPEED - 100
     printSpeed()
+    
+def setSpeed(newSpeed):
+    global SPEED
+    SPEED = newSpeed
+    printSpeed()
 
 def printSpeed():
     print("Current Speed: " + str(SPEED))
@@ -92,7 +97,27 @@ with connect() as hedgehog:
                     stop()
                 elif data == 7:
                     stop()
-                    
+                elif data == 31:
+                    setSpeed(100)
+                elif data == 32:
+                    setSpeed(200)
+                elif data == 33:
+                    setSpeed(300)
+                elif data == 34:
+                    setSpeed(400)
+                elif data == 35:
+                    setSpeed(500)
+                elif data == 36:
+                    setSpeed(600)
+                elif data == 37:
+                    setSpeed(700)
+                elif data == 38:
+                    setSpeed(800)
+                elif data == 39:
+                    setSpeed(900)
+                elif data == 40:
+                    setSpeed(1000)
+                
             except:
                 print("[" + str(client_address[0]) + "] Disconnected")
                 break
